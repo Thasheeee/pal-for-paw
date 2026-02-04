@@ -126,7 +126,7 @@ const AddDogPage = ({ user, role, navigateTo, setAdoptionDogs }) => {
                   </label>
                 ) : (
                   <div className="image-preview" style={{ position: 'relative' }}>
-                    <img src={formData.image} alt="Preview" style={{ maxHeight: '200px', borderRadius: '12px' }} />
+                    <img src={formData.image} alt={`Preview of ${formData.name || 'dog'} for adoption`} style={{ maxHeight: '200px', borderRadius: '12px' }} />
                     <button type="button" className="remove-image" onClick={() => setFormData({ ...formData, image: '' })}>
                       <X size={16} />
                     </button>
