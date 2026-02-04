@@ -1,14 +1,33 @@
-import React from 'react';
-import { 
-  PawPrint, LogIn, UserPlus, Menu, X, Home, Heart, 
-  Calendar, Sparkles, Bell, BarChart3, User, Stethoscope 
-} from 'lucide-react';
+import React from "react";
+import {
+  PawPrint,
+  LogIn,
+  UserPlus,
+  Menu,
+  X,
+  Home,
+  Heart,
+  Calendar,
+  Sparkles,
+  Bell,
+  BarChart3,
+  User,
+  Stethoscope,
+} from "lucide-react";
 
-const Header = ({ user, role, currentPage, navigateTo, logout, mobileMenuOpen, setMobileMenuOpen }) => {
+const Header = ({
+  user,
+  role,
+  currentPage,
+  navigateTo,
+  logout,
+  mobileMenuOpen,
+  setMobileMenuOpen,
+}) => {
   return (
     <header className="header">
       <div className="header-content">
-        <div className="logo" onClick={() => navigateTo('home')}>
+        <div className="logo" onClick={() => navigateTo("home")}>
           <div className="logo-icon">
             <PawPrint size={32} strokeWidth={2.5} />
           </div>
@@ -19,39 +38,60 @@ const Header = ({ user, role, currentPage, navigateTo, logout, mobileMenuOpen, s
         </div>
 
         <nav className="desktop-nav">
-          <button onClick={() => navigateTo('home')} className={currentPage === 'home' ? 'active' : ''}>
+          <button
+            onClick={() => navigateTo("home")}
+            className={currentPage === "home" ? "active" : ""}
+          >
             <Home size={18} />
             Home
           </button>
-          <button onClick={() => navigateTo('adoption')} className={currentPage === 'adoption' ? 'active' : ''}>
+          <button
+            onClick={() => navigateTo("adoption")}
+            className={currentPage === "adoption" ? "active" : ""}
+          >
             <Heart size={18} />
             Adopt
           </button>
-          <button onClick={() => navigateTo('booking')} className={currentPage === 'booking' ? 'active' : ''}>
-            <Calendar size={18} />
-            Book Vet
-          </button>
-          
-          {user && role === 'user' && (
+          {user && role !== "vet" && (
+            <button
+              className={`nav-link ${currentPage === "booking" ? "active" : ""}`}
+              onClick={() => navigateTo("booking")}
+            >
+              <Calendar size={18} />
+              <span>Book Vet</span>
+            </button>
+          )}
+          {user && role === "user" && (
             <>
-              <button onClick={() => navigateTo('predict')} className={currentPage === 'predict' ? 'active' : ''}>
+              <button
+                onClick={() => navigateTo("predict")}
+                className={currentPage === "predict" ? "active" : ""}
+              >
                 <Sparkles size={18} />
                 Predict
               </button>
-              <button onClick={() => navigateTo('my-appointments')} className={currentPage === 'my-appointments' ? 'active' : ''}>
+              <button
+                onClick={() => navigateTo("my-appointments")}
+                className={currentPage === "my-appointments" ? "active" : ""}
+              >
                 <Calendar size={18} />
                 My Appointments
               </button>
             </>
           )}
-          
-          {user && role === 'vet' && (
+          {user && role === "vet" && (
             <>
-              <button onClick={() => navigateTo('vet-dashboard')} className={currentPage === 'vet-dashboard' ? 'active' : ''}>
+              <button
+                onClick={() => navigateTo("vet-dashboard")}
+                className={currentPage === "vet-dashboard" ? "active" : ""}
+              >
                 <Bell size={18} />
                 Appointments
               </button>
-              <button onClick={() => navigateTo('analytics')} className={currentPage === 'analytics' ? 'active' : ''}>
+              <button
+                onClick={() => navigateTo("analytics")}
+                className={currentPage === "analytics" ? "active" : ""}
+              >
                 <BarChart3 size={18} />
                 Analytics
               </button>
@@ -62,11 +102,17 @@ const Header = ({ user, role, currentPage, navigateTo, logout, mobileMenuOpen, s
         <div className="header-actions">
           {!user ? (
             <>
-              <button className="btn-secondary" onClick={() => navigateTo('login')}>
+              <button
+                className="btn-secondary"
+                onClick={() => navigateTo("login")}
+              >
                 <LogIn size={18} />
                 Login
               </button>
-              <button className="btn-primary" onClick={() => navigateTo('register')}>
+              <button
+                className="btn-primary"
+                onClick={() => navigateTo("register")}
+              >
                 <UserPlus size={18} />
                 Register
               </button>
@@ -74,7 +120,11 @@ const Header = ({ user, role, currentPage, navigateTo, logout, mobileMenuOpen, s
           ) : (
             <div className="user-menu">
               <div className="user-badge">
-                {role === 'vet' ? <Stethoscope size={18} /> : <User size={18} />}
+                {role === "vet" ? (
+                  <Stethoscope size={18} />
+                ) : (
+                  <User size={18} />
+                )}
                 <span>{user.email}</span>
               </div>
               <button className="btn-secondary" onClick={logout}>
@@ -82,8 +132,11 @@ const Header = ({ user, role, currentPage, navigateTo, logout, mobileMenuOpen, s
               </button>
             </div>
           )}
-          
-          <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+
+          <button
+            className="mobile-menu-btn"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
@@ -91,52 +144,56 @@ const Header = ({ user, role, currentPage, navigateTo, logout, mobileMenuOpen, s
 
       {mobileMenuOpen && (
         <div className="mobile-menu">
-          <button onClick={() => navigateTo('home')}>
+          <button onClick={() => navigateTo("home")}>
             <Home size={20} />
             Home
           </button>
-          <button onClick={() => navigateTo('adoption')}>
+          <button onClick={() => navigateTo("adoption")}>
             <Heart size={20} />
             Adopt a Dog
           </button>
-          <button onClick={() => navigateTo('booking')}>
-            <Calendar size={20} />
-            Book Vet
-          </button>
-          
-          {user && role === 'user' && (
+          {role !== "vet" && (
+            <button
+              onClick={() => navigateTo("booking")}
+              className={currentPage === "booking" ? "active" : ""}
+            >
+              <Calendar size={18} /> Book Vet
+            </button>
+          )}
+
+          {user && role === "user" && (
             <>
-              <button onClick={() => navigateTo('predict')}>
+              <button onClick={() => navigateTo("predict")}>
                 <Sparkles size={20} />
                 Predict Disease
               </button>
-              <button onClick={() => navigateTo('my-appointments')}>
+              <button onClick={() => navigateTo("my-appointments")}>
                 <Calendar size={20} />
                 My Appointments
               </button>
             </>
           )}
-          
-          {user && role === 'vet' && (
+
+          {user && role === "vet" && (
             <>
-              <button onClick={() => navigateTo('vet-dashboard')}>
+              <button onClick={() => navigateTo("vet-dashboard")}>
                 <Bell size={20} />
                 Appointments
               </button>
-              <button onClick={() => navigateTo('analytics')}>
+              <button onClick={() => navigateTo("analytics")}>
                 <BarChart3 size={20} />
                 Analytics
               </button>
             </>
           )}
-          
+
           {!user && (
             <>
-              <button onClick={() => navigateTo('login')}>
+              <button onClick={() => navigateTo("login")}>
                 <LogIn size={20} />
                 Login
               </button>
-              <button onClick={() => navigateTo('register')}>
+              <button onClick={() => navigateTo("register")}>
                 <UserPlus size={20} />
                 Register
               </button>

@@ -1,32 +1,47 @@
 import os
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import tensorflow as tf
-import torch  # <--- FIXED: Added missing import
+import io
 import pickle
 import numpy as np
+import tensorflow as tf
+import torch
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from flask_pymongo import PyMongo
+from werkzeug.security import generate_password_hash, check_password_hash
 from PIL import Image, ImageOps
 from transformers import CLIPProcessor, CLIPModel
-import io
+from bson import ObjectId
 
-# 1. SETUP FLASK
+# 1. SETUP FLASK & MONGODB ATLAS
 app = Flask(__name__)
 CORS(app) 
 
-# 2. LOAD VISION MODEL (Universal Low-Level Loader)
+# Replace <password> with your copied Atlas password: 93vKGCTfjsUWCTZu
+# Insert 'palForPaw' before the '?'
+app.config["MONGO_URI"] = "mongodb+srv://thashee2003_db_user:93vKGCTFjsUWCTZu@palforpawcluster0.ao04vhy.mongodb.net/palForPaw?retryWrites=true&w=majority&appName=PalForPawCluster0"
+mongo = PyMongo(app) #
+
+# Initialization Check
+with app.app_context():
+    try:
+        mongo.db.command('ping')
+        print("✅ Successfully connected to MongoDB Atlas (palForPaw database)!")
+    except Exception as e:
+        print(f"❌ MongoDB Connection Failed: {e}")
+
+
+
+# 2. LOAD VISION MODEL
 print("⏳ Loading Vision Model...")
 try:
-    # We use tf.saved_model.load instead of keras. This works on ALL versions.
     loaded_model = tf.saved_model.load('final_dog_skin_model_tf')
-    # Get the "serving" function (the actual predictor)
     vision_model = loaded_model.signatures["serving_default"]
     print("✅ Vision Model Loaded!")
 except Exception as e:
     print(f"❌ Error loading vision model: {e}")
-    print("⚠️ Ensure 'final_dog_skin_model_tf' folder is in backend/")
     vision_model = None
 
-# 3. LOAD TEXT EXPERT
+# 3. LOAD TEXT EXPERT (CLIP)
 print("⏳ Loading Text Expert (CLIP)...")
 device = "cpu"
 try:
@@ -40,7 +55,7 @@ except Exception as e:
     print(f"❌ Error loading text resources: {e}")
     vector_db = []
 
-# 4. CONSTANTS
+# 4. CONSTANTS & MAPPINGS
 CLASSES = ['Dermatitis', 'Fungal_infections', 'Healthy', 'Hypersensitivity', 'demodicosis', 'ringworm']
 KEYWORDS = {
     "ringworm": ["circle", "circular", "ring", "round", "bald spot", "coin", "oval", "lesion"],
@@ -51,104 +66,166 @@ KEYWORDS = {
     "Healthy": ["clean", "shiny", "healthy", "normal", "clear", "soft", "pretty", "no issue"]
 }
 
-# --- 5. ENDPOINT: IMAGE PREDICTION ---
+# --- 5. AUTHENTICATION ENDPOINTS ---
+
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    # Enforce role-based uniqueness
+    if mongo.db.users.find_one({"email": data['email'], "role": data['role']}):
+        return jsonify({"error": f"Email already registered as {data['role']}"}), 400
+    
+    hashed_pw = generate_password_hash(data['password'])
+    mongo.db.users.insert_one({
+        "fullName": data['fullName'],
+        "email": data['email'],
+        "password": hashed_pw,
+        "role": data['role']
+    })
+    return jsonify({"message": "Registration successful"}), 201
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    user = mongo.db.users.find_one({"email": data['email'], "role": data['role']}) #
+    
+    if user and check_password_hash(user['password'], data['password']):
+        return jsonify({"email": user['email'], "role": user['role']}), 200
+    return jsonify({"error": "Invalid email, password, or role choice"}), 401 #
+
+# --- 6. DATA MANAGEMENT ENDPOINTS ---
+
+@app.route('/api/appointments', methods=['POST', 'GET'])
+def manage_appointments():
+    if request.method == 'POST':
+        # Used by BookingPage.jsx to save new requests
+        mongo.db.appointments.insert_one(request.get_json())
+        return jsonify({"message": "Appointment booked"}), 201
+    
+    # Used by App.jsx to fetch data for display
+    role = request.args.get('role')
+    email = request.args.get('email')
+    
+    # Filter: Vets see everything; Users see only theirs
+    query = {} if role == 'vet' else {"email": email}
+    apts = list(mongo.db.appointments.find(query))
+    
+    # Convert MongoDB ObjectIds to strings so React can read them
+    for a in apts: a['_id'] = str(a['_id'])
+    return jsonify(apts), 200
+
+
+# --- VET DASHBOARD: UPDATE APPOINTMENT STATUS ---
+@app.route('/api/appointments/<id>', methods=['PATCH'])
+def update_appointment_status(id):
+    try:
+        data = request.get_json()
+        new_status = data.get('status') # e.g., 'accepted' or 'rejected'
+        
+        # Update the specific appointment in MongoDB Atlas
+        result = mongo.db.appointments.update_one(
+            {'_id': ObjectId(id)},
+            {'$set': {'status': new_status}}
+        )
+        
+        if result.modified_count > 0:
+            return jsonify({"message": f"Appointment {new_status}"}), 200
+        return jsonify({"error": "Appointment not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/dogs', methods=['POST', 'GET'])
+def manage_dogs():
+    if request.method == 'POST':
+        # Stores dog data including Base64 image string directly to Atlas
+        mongo.db.dogs.insert_one(request.get_json())
+        return jsonify({"message": "Dog added for adoption"}), 201
+    
+    dogs = list(mongo.db.dogs.find())
+    for d in dogs: d['_id'] = str(d['_id'])
+    return jsonify(dogs), 200
+
+# --- DELETE DOG LISTING ---
+@app.route('/api/dogs/<id>', methods=['DELETE'])
+def delete_dog(id):
+    try:
+        result = mongo.db.dogs.delete_one({'_id': ObjectId(id)})
+        if result.deleted_count > 0:
+            return jsonify({"message": "Dog removed from adoption list"}), 200
+        return jsonify({"error": "Dog not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+# --- 7. ML PREDICTION ENDPOINTS ---
+
 @app.route('/predict_image', methods=['POST'])
 def predict_image():
     if not vision_model:
         return jsonify({'error': 'Vision model not loaded.'}), 500
     
     if 'image' not in request.files:
-        return jsonify({'error': 'No image file provided'}), 400
+        return jsonify({'error': 'No image provided'}), 400
 
     try:
         file = request.files['image']
         image = Image.open(io.BytesIO(file.read()))
-        
-        # Preprocess
         img = ImageOps.fit(image, (224, 224), Image.Resampling.LANCZOS)
         img_array = np.asarray(img)
         img_array = np.expand_dims(img_array, axis=0)
         img_array = tf.keras.applications.efficientnet.preprocess_input(img_array)
         
-        # Predict (Using Low-Level Signature)
-        # We must convert numpy array to Tensor explicitly
         input_tensor = tf.constant(img_array, dtype=tf.float32)
-        
-        # The model returns a dictionary. We grab the first output.
         preds_dict = vision_model(input_tensor)
-        
-        # Extract the prediction tensor (usually named 'output_0' or 'dense')
-        # We just take the first value found in the dictionary to be safe
         preds_tensor = list(preds_dict.values())[0]
-        preds = preds_tensor.numpy()[0] # Convert back to numpy
+        preds = preds_tensor.numpy()[0]
         
         score = tf.nn.softmax(preds)
-        
         top_index = np.argmax(score)
-        result = {
+        
+        return jsonify({
             'disease': CLASSES[top_index],
             'confidence': f"{float(np.max(score) * 100):.1f}%"
-        }
-        return jsonify(result)
-
+        })
     except Exception as e:
-        print(f"Prediction Error: {e}")
         return jsonify({'error': str(e)}), 500
 
-# --- 6. ENDPOINT: TEXT PREDICTION ---
 @app.route('/predict_text', methods=['POST'])
 def predict_text():
     if not vector_db:
-        return jsonify({'error': 'Text database not loaded'}), 500
+        return jsonify({'error': 'Database not loaded'}), 500
 
     data = request.json
     user_text = data.get('text', '')
-    
     if not user_text:
         return jsonify({'error': 'No text provided'}), 400
 
     try:
-        # Vector Search
-        prompts = [f"a photo of a dog with {user_text}", f"veterinary clinical image of {user_text}", user_text]
-        inputs = clip_processor(text=prompts, return_tensors="pt", padding=True).to(device)
+        inputs = clip_processor(text=[user_text], return_tensors="pt", padding=True).to(device)
         with torch.no_grad():
             text_features = clip_model.get_text_features(**inputs)
         
         text_features /= text_features.norm(p=2, dim=-1, keepdim=True)
-        mean_vector = torch.mean(text_features, dim=0, keepdim=True)
-        mean_vector /= mean_vector.norm()
-        text_vector = mean_vector.numpy()
+        text_vector = text_features.numpy()
         
         ai_scores = {d: 0.0 for d in CLASSES}
-        scores = []
         for entry in vector_db:
             sim = np.dot(text_vector, entry['vector'].T).item()
-            scores.append((sim, entry['label']))
-        
-        scores.sort(key=lambda x: x[0], reverse=True)
-        for sim, label in scores[:30]:
-            ai_scores[label] += sim
+            ai_scores[entry['label']] = max(ai_scores[entry['label']], sim)
             
-        max_val = max(ai_scores.values()) if ai_scores.values() else 1
-        for d in ai_scores: ai_scores[d] /= max_val
-
-        # Keyword Boost
+        # Keyword Boosting
         user_words = user_text.lower()
         for disease, keys in KEYWORDS.items():
             if any(k in user_words for k in keys):
-                ai_scores[disease] += 2.0
-
-        if ai_scores.get('ringworm', 0) > 0.8 and not any(k in user_words for k in KEYWORDS['ringworm']):
-            ai_scores['ringworm'] *= 0.3
+                ai_scores[disease] += 0.5
 
         winner = max(ai_scores, key=ai_scores.get)
-        confidence = min(ai_scores[winner] * 35, 99.9)
+        confidence = min(ai_scores[winner] * 100, 99.9)
         
         return jsonify({'disease': winner, 'confidence': f"{confidence:.1f}%"})
-
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    print("🚀 Server starting on http://localhost:5000")
+    print("🚀 Pal for Paw Server starting on http://localhost:5000")
     app.run(port=5000, debug=True)

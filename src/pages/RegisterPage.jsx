@@ -1,15 +1,44 @@
 import React, { useState } from 'react';
-import { PawPrint, UserPlus, User, Stethoscope } from 'lucide-react';
+import { PawPrint, UserPlus, User, Stethoscope, AlertCircle } from 'lucide-react';
 
 const RegisterPage = ({ login, navigateTo }) => {
   const [selectedRole, setSelectedRole] = useState('user');
-  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    password: ''
+  });
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    if (email) {
-      login(email, selectedRole);
-      navigateTo('home');
+    setError('');
+
+    try {
+      // 1. Send data to your Flask Backend
+      const response = await fetch('http://localhost:5000/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+          role: selectedRole
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // 2. If successful, log in and navigate
+        login(formData.email, selectedRole);
+        navigateTo('home');
+      } else {
+        // 3. Display backend errors (e.g., email already registered)
+        setError(data.error);
+      }
+    } catch (err) {
+      setError("Failed to connect to the server. Is your Flask app running?");
     }
   };
 
@@ -22,6 +51,14 @@ const RegisterPage = ({ login, navigateTo }) => {
             <h2>Join Pal for Paw</h2>
             <p>Create your account to get started</p>
           </div>
+
+          {/* Show error message if registration fails */}
+          {error && (
+            <div className="result-disclaimer" style={{backgroundColor: 'var(--error)', color: 'white', marginBottom: '1rem'}}>
+              <AlertCircle size={18} />
+              <span>{error}</span>
+            </div>
+          )}
 
           <div className="role-selector">
             <button
@@ -43,21 +80,33 @@ const RegisterPage = ({ login, navigateTo }) => {
           <form onSubmit={handleRegister} className="auth-form">
             <div className="form-group">
               <label>Full Name</label>
-              <input type="text" placeholder="John Doe" required />
+              <input 
+                type="text" 
+                placeholder="John Doe" 
+                required 
+                value={formData.fullName}
+                onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+              />
             </div>
             <div className="form-group">
               <label>Email Address</label>
               <input
                 type="email"
                 placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 required
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
               />
             </div>
             <div className="form-group">
               <label>Password</label>
-              <input type="password" placeholder="••••••••" required />
+              <input 
+                type="password" 
+                placeholder="••••••••" 
+                required 
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
+              />
             </div>
             <button type="submit" className="btn-primary btn-full">
               <UserPlus size={20} />

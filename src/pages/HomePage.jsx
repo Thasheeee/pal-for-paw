@@ -1,10 +1,16 @@
-import React from 'react';
-import { 
-  Sparkles, Calendar, Heart, ChevronRight, LogIn, 
-  PawPrint, AlertCircle, Plus
-} from 'lucide-react';
-import DogCard from '../components/DogCard';
-import Footer from '../components/Footer';
+import React from "react";
+import {
+  Sparkles,
+  Calendar,
+  Heart,
+  ChevronRight,
+  LogIn,
+  PawPrint,
+  AlertCircle,
+  Plus,
+} from "lucide-react";
+import DogCard from "../components/DogCard";
+import Footer from "../components/Footer";
 
 const HomePage = ({ user, role, navigateTo, adoptionDogs }) => {
   return (
@@ -18,10 +24,6 @@ const HomePage = ({ user, role, navigateTo, adoptionDogs }) => {
         </div>
         <div className="hero-content">
           <div className="hero-text">
-            <div className="hero-badge">
-              <Sparkles size={16} />
-              <span>AI-Powered Care</span>
-            </div>
             <h1 className="hero-title">
               Caring for Paws
               <br />
@@ -31,13 +33,22 @@ const HomePage = ({ user, role, navigateTo, adoptionDogs }) => {
               Early detection, faster care, happier dogs
             </p>
             <div className="hero-buttons">
-              <button className="btn-primary btn-large" onClick={() => navigateTo('booking')}>
-                <Calendar size={20} />
-                Book a Vet Appointment
-                <ChevronRight size={20} />
-              </button>
+              {role !== "vet" && (
+                <button
+                  className="hero-btn"
+                  onClick={() => navigateTo("booking")}
+                >
+                  <Calendar size={20} />
+                  Book a Vet Appointment
+                  <ChevronRight size={20} />
+                </button>
+              )}
+
               {!user && (
-                <button className="btn-outline btn-large" onClick={() => navigateTo('login')}>
+                <button
+                  className="btn-outline btn-large"
+                  onClick={() => navigateTo("login")}
+                >
                   <LogIn size={20} />
                   Login / Register
                 </button>
@@ -46,7 +57,10 @@ const HomePage = ({ user, role, navigateTo, adoptionDogs }) => {
           </div>
           <div className="hero-image">
             <div className="hero-image-card">
-              <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=500&fit=crop" alt="Happy dog" />
+              <img
+                src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=500&fit=crop"
+                alt="Happy dog"
+              />
               <div className="hero-image-badge">
                 <PawPrint size={20} />
                 <div>
@@ -99,7 +113,7 @@ const HomePage = ({ user, role, navigateTo, adoptionDogs }) => {
           </h2>
           <p>Give a loving home to these wonderful companions</p>
         </div>
-        
+
         {!user && (
           <div className="info-banner">
             <AlertCircle size={20} />
@@ -107,9 +121,12 @@ const HomePage = ({ user, role, navigateTo, adoptionDogs }) => {
           </div>
         )}
 
-        {user && role === 'user' && (
+        {user && role === "user" && (
           <div className="add-dog-section">
-            <button className="btn-primary" onClick={() => navigateTo('add-dog')}>
+            <button
+              className="btn-primary"
+              onClick={() => navigateTo("add-dog")}
+            >
               <Plus size={20} />
               Add Dog for Adoption
             </button>
