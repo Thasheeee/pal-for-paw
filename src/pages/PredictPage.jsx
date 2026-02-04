@@ -181,7 +181,7 @@ const PredictPage = ({ user, role, navigateTo }) => {
               <div className="upload-box">
                 {imagePreview ? (
                   <div className="image-preview">
-                    <img src={imagePreview} alt="Uploaded dog image for skin analysis" />
+                    <img src={imagePreview} alt="Uploaded dog skin disease for skin analysis" />
 
                     <button className="remove-image" onClick={() => {
                         setImagePreview(null);

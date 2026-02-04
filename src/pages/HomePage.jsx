@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import DogCard from "../components/DogCard";
 import Footer from "../components/Footer";
+import Dog from '../styles/inputdog.jpg';
+import Happy from '../styles/happy.jpg';
 
 const HomePage = ({ user, role, navigateTo, adoptionDogs }) => {
   return (
@@ -58,7 +60,7 @@ const HomePage = ({ user, role, navigateTo, adoptionDogs }) => {
           <div className="hero-image">
             <div className="hero-image-card">
               <img
-                src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=500&fit=crop"
+                src={Happy}
                 alt="Happy dog"
               />
               <div className="hero-image-badge">
@@ -87,7 +89,7 @@ const HomePage = ({ user, role, navigateTo, adoptionDogs }) => {
           <div className="diagnostic-card">
             <div className="diagnostic-visual">
               <img
-                src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=300&fit=crop"
+                src={Dog}
                 alt="Dog skin being analyzed"
               />
 
