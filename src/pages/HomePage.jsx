@@ -27,7 +27,7 @@ const HomePage = ({ user, role, navigateTo, adoptionDogs }) => {
             <h1 className="hero-title">
               Caring for Paws
               <br />
-              <span className="gradient-text">with AI</span>
+              <span className="gradient-text">with Smart Diagnostics</span>
             </h1>
             <p className="hero-subtitle">
               Early detection, faster care, happier dogs
@@ -63,11 +63,75 @@ const HomePage = ({ user, role, navigateTo, adoptionDogs }) => {
               />
               <div className="hero-image-badge">
                 <PawPrint size={20} />
-                <div>
-                  <div className="badge-title">Happy & Healthy</div>
-                  <div className="badge-text">1000+ Dogs Helped</div>
-                </div>
+               
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Core Diagnostic Focus Section */}
+      <section className="diagnostic-focus">
+        <div className="section-header">
+          <h2>
+            <Sparkles size={32} className="section-icon" />
+            Digital Skin Health Analysis
+          </h2>
+          <p>
+            Advanced computational modeling for rapid skin condition
+            identification
+          </p>
+        </div>
+
+        <div className="diagnostic-grid">
+          {/* Image Diagnostic Card */}
+          <div className="diagnostic-card">
+            <div className="diagnostic-visual">
+              <img
+                src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=300&fit=crop"
+                alt="Image Analysis"
+              />
+              <div className="diagnostic-overlay">
+                <div className="scan-line"></div>
+              </div>
+            </div>
+            <div className="diagnostic-info">
+              <h3>Visual Condition Analysis</h3>
+              <p>
+                Upload a high-resolution photo of the affected area for
+                immediate pattern recognition and classification.
+              </p>
+              <button
+                className="btn-secondary"
+                onClick={() => navigateTo("predict")}
+              >
+                Analyze Photo
+              </button>
+            </div>
+          </div>
+
+          {/* Text Diagnostic Card */}
+          <div className="diagnostic-card">
+            <div className="diagnostic-visual text-visual">
+              <div className="text-preview">
+                <p>
+                  "Circular bald patch with reddish edges on the left paw..."
+                </p>
+                <div className="cursor"></div>
+              </div>
+            </div>
+            <div className="diagnostic-info">
+              <h3>Symptomatic Text Evaluation</h3>
+              <p>
+                Describe symptoms in natural language to cross-reference against
+                our extensive dermatological database.
+              </p>
+              <button
+                className="btn-secondary"
+                onClick={() => navigateTo("predict")}
+              >
+                Describe Symptoms
+              </button>
             </div>
           </div>
         </div>
@@ -84,7 +148,7 @@ const HomePage = ({ user, role, navigateTo, adoptionDogs }) => {
             <div className="feature-icon ai-icon">
               <Sparkles size={28} />
             </div>
-            <h3>AI Disease Detection</h3>
+            <h3>Smart Health Evaluation</h3>
             <p>Advanced machine learning to identify skin conditions early</p>
           </div>
           <div className="feature-card">

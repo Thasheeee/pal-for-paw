@@ -1,128 +1,190 @@
 import React, { useState } from 'react';
 import { 
+  Bell, 
+  Calendar, 
+  Clock, 
+  Phone, 
+  Mail, 
   CheckCircle, 
   XCircle, 
-  Clock, 
-  User, 
-  Phone, 
-  Calendar as CalendarIcon,
+  AlertCircle,
+  History,
   ClipboardList
 } from 'lucide-react';
 
-const VetDashboardPage = ({ appointments, setAppointments, user, role }) => {
-  const [filter, setFilter] = useState('all');
+const VetDashboardPage = ({ 
+  user, 
+  role, 
+  navigateTo, 
+  appointments, 
+  setAppointments 
+}) => {
+  // Toggle between 'requests' and 'history' views
+  const [activeTab, setActiveTab] = useState('requests');
 
-  // --- 1. HANDLE STATUS UPDATE (Atlas Integration) ---
-  const handleStatusUpdate = async (appointmentId, newStatus) => {
+  // --- 1. HANDLE STATUS UPDATE (MongoDB Atlas Integration) ---
+  const handleStatusUpdate = async (appointmentId, newStatus, responseText) => {
     try {
       const response = await fetch(`http://localhost:5000/api/appointments/${appointmentId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ 
+          status: newStatus,
+          response: responseText 
+        }),
       });
 
       if (response.ok) {
-        // Update the global state in App.jsx so all pages stay in sync
-        setAppointments(prev => 
-          prev.map(apt => apt._id === appointmentId ? { ...apt, status: newStatus } : apt)
-        );
+        alert(`Success! Appointment has been ${newStatus}.`);
+        
+        // Update global state to reflect changes across the app
+        setAppointments(prev => {
+          const currentApts = Array.isArray(prev) ? prev : [];
+          return currentApts.map(apt => 
+            apt._id === appointmentId ? { ...apt, status: newStatus, response: responseText } : apt
+          );
+        });
       } else {
         const errorData = await response.json();
         alert(`Update failed: ${errorData.error}`);
       }
     } catch (error) {
-      console.error("Error updating status in MongoDB Atlas:", error);
+      console.error("Error updating status:", error);
       alert("Failed to connect to the server.");
     }
   };
 
-  // Filter logic for the UI
-  const filteredAppointments = appointments.filter(apt => 
-    filter === 'all' ? true : apt.status === filter
-  );
+  const handleAccept = (id) => {
+    handleStatusUpdate(id, 'accepted', 'Your appointment has been confirmed by the veterinarian.');
+  };
+
+  const handleReject = (id) => {
+    const reason = prompt('Please provide a reason for rejection (optional):');
+    if (reason !== null) {
+      handleStatusUpdate(id, 'rejected', reason || 'Appointment was declined due to schedule constraints.');
+    }
+  };
+
+  // --- 2. DATA FILTERING ---
+  // Ensure appointments is always an array to prevent .map() crashes
+  const allAppointments = Array.isArray(appointments) ? appointments : [];
+  const pendingRequests = allAppointments.filter(apt => apt.status === 'pending');
+  const historyLog = allAppointments.filter(apt => apt.status !== 'pending');
+
+  // --- 3. ACCESS PROTECTION ---
+  if (!user || role !== 'vet') {
+    return (
+      <div className="page">
+        <div className="restriction-message">
+          <AlertCircle size={64} />
+          <h2>Access Restricted</h2>
+          <p>This page is only accessible to veterinarians</p>
+          <button className="btn-primary" onClick={() => navigateTo('login')}>
+            Login as Veterinarian
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page">
       <div className="page-header">
         <h1><ClipboardList size={36} /> Veterinarian Dashboard</h1>
-        <p>Manage your upcoming appointments and patient requests</p>
+        <p>Manage your clinical schedule and patient requests</p>
       </div>
 
-      {/* Stats Overview */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <Clock className="stat-icon pending" />
-          <div className="stat-info">
-            <span className="stat-value">{appointments.filter(a => a.status === 'pending').length}</span>
-            <span className="stat-label">Pending</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <CheckCircle className="stat-icon accepted" />
-          <div className="stat-info">
-            <span className="stat-value">{appointments.filter(a => a.status === 'accepted').length}</span>
-            <span className="stat-label">Accepted</span>
-          </div>
-        </div>
+      {/* View Toggle Tabs */}
+      <div className="tabs-container" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', justifyContent: 'center' }}>
+        <button 
+          className={`btn-primary ${activeTab === 'requests' ? '' : 'btn-outline'}`}
+          onClick={() => setActiveTab('requests')}
+        >
+          <Bell size={18} /> New Requests ({pendingRequests.length})
+        </button>
+        <button 
+          className={`btn-primary ${activeTab === 'history' ? '' : 'btn-outline'}`}
+          onClick={() => setActiveTab('history')}
+        >
+          <History size={18} /> Appointment History
+        </button>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="tabs-container">
-        <button className={`tab ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>All</button>
-        <button className={`tab ${filter === 'pending' ? 'active' : ''}`} onClick={() => setFilter('pending')}>Pending</button>
-        <button className={`tab ${filter === 'accepted' ? 'active' : ''}`} onClick={() => setFilter('accepted')}>Accepted</button>
-      </div>
-
-      {/* Appointments List */}
-      <div className="appointments-list">
-        {filteredAppointments.length === 0 ? (
-          <div className="empty-state">
-            <p>No appointments found for this category.</p>
-          </div>
-        ) : (
-          filteredAppointments.map((apt) => (
-            <div key={apt._id} className={`appointment-card ${apt.status}`}>
-              <div className="apt-header">
-                <h3>{apt.dogName}</h3>
-                <span className={`status-badge ${apt.status}`}>{apt.status.toUpperCase()}</span>
-              </div>
-              
-              <div className="apt-details">
-                <div className="detail-item">
-                  <User size={16} /> <span>Owner: {apt.ownerName}</span>
-                </div>
-                <div className="detail-item">
-                  <Phone size={16} /> <span>Contact: {apt.contact}</span>
-                </div>
-                <div className="detail-item">
-                  <CalendarIcon size={16} /> <span>Date: {apt.date} at {apt.time}</span>
-                </div>
-              </div>
-
-              {apt.notes && (
-                <div className="apt-notes">
-                  <strong>Notes:</strong> {apt.notes}
-                </div>
-              )}
-
-              {apt.status === 'pending' && (
-                <div className="apt-actions">
-                  <button 
-                    className="btn-accept" 
-                    onClick={() => handleStatusUpdate(apt._id, 'accepted')}
-                  >
-                    <CheckCircle size={18} /> Accept
-                  </button>
-                  <button 
-                    className="btn-reject" 
-                    onClick={() => handleStatusUpdate(apt._id, 'rejected')}
-                  >
-                    <XCircle size={18} /> Reject
-                  </button>
-                </div>
-              )}
+      <div className="vet-dashboard">
+        {activeTab === 'requests' ? (
+          /* PENDING REQUESTS VIEW */
+          pendingRequests.length === 0 ? (
+            <div className="empty-state">
+              <CheckCircle size={64} color="var(--success)" />
+              <h3>All Caught Up!</h3>
+              <p>No pending appointment requests at the moment.</p>
             </div>
-          ))
+          ) : (
+            <div className="appointments-list">
+              {pendingRequests.map((appointment) => (
+                <div key={appointment._id} className="appointment-card vet-card">
+                  <div className="appointment-header">
+                    <div>
+                      <h3>{appointment.dogName}</h3>
+                      <p className="appointment-owner">Owner: {appointment.ownerName}</p>
+                    </div>
+                    <div className="status-badge pending">PENDING</div>
+                  </div>
+                  <div className="appointment-details">
+                    <div className="appointment-detail"><Calendar size={16} /> {appointment.date}</div>
+                    <div className="appointment-detail"><Clock size={16} /> {appointment.time}</div>
+                    <div className="appointment-detail"><Phone size={16} /> {appointment.contact}</div>
+                    <div className="appointment-detail"><Mail size={16} /> {appointment.email}</div>
+                  </div>
+                  {appointment.notes && (
+                    <div className="appointment-notes">
+                      <strong>Patient Notes:</strong> {appointment.notes}
+                    </div>
+                  )}
+                  <div className="appointment-actions">
+                    <button className="btn-success" onClick={() => handleAccept(appointment._id)}>
+                      <CheckCircle size={18} /> Accept
+                    </button>
+                    <button className="btn-danger" onClick={() => handleReject(appointment._id)}>
+                      <XCircle size={18} /> Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        ) : (
+          /* HISTORY LOG VIEW */
+          historyLog.length === 0 ? (
+            <div className="empty-state">
+              <History size={64} />
+              <h3>No History Yet</h3>
+              <p>Processed appointments will appear here.</p>
+            </div>
+          ) : (
+            <div className="appointments-list">
+              {historyLog.map((appointment) => (
+                <div key={appointment._id} className={`appointment-card ${appointment.status}`}>
+                  <div className="appointment-header">
+                    <div>
+                      <h3>{appointment.dogName}</h3>
+                      <p className="appointment-owner">Owner: {appointment.ownerName}</p>
+                    </div>
+                    <div className={`status-badge ${appointment.status}`}>
+                      {appointment.status.toUpperCase()}
+                    </div>
+                  </div>
+                  <div className="appointment-details">
+                    <div className="appointment-detail"><Calendar size={16} /> {appointment.date}</div>
+                    <div className="appointment-detail"><Clock size={16} /> {appointment.time}</div>
+                  </div>
+                  <div className="vet-response" style={{ marginTop: '1rem', padding: '1rem', background: 'var(--background)', borderRadius: '12px' }}>
+                    <strong>Your Response:</strong> {appointment.response}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
         )}
       </div>
     </div>

@@ -1,6 +1,3 @@
-// File: App.jsx
-// Main application component with MongoDB Atlas Integration
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './hooks/useAuth';
 import Header from './components/Header';
@@ -31,7 +28,7 @@ const App = () => {
         // Fetch Adoption Dogs (Always available)
         const dogRes = await fetch('http://localhost:5000/api/dogs');
         const dogData = await dogRes.json();
-        setAdoptionDogs(dogData);
+        setAdoptionDogs(Array.isArray(dogData) ? dogData : []);
 
         // Fetch Appointments (Only if logged in)
         if (user) {
@@ -39,7 +36,7 @@ const App = () => {
             `http://localhost:5000/api/appointments?role=${role}&email=${user.email}`
           );
           const aptData = await aptRes.json();
-          setAppointments(aptData);
+          setAppointments(Array.isArray(aptData) ? aptData : []);
         }
       } catch (error) {
         console.error("Error syncing with MongoDB Atlas:", error);
@@ -47,16 +44,21 @@ const App = () => {
     };
 
     fetchData();
-  }, [user, role, currentPage]); // Refetch on login, role change, or navigation
+  }, [user, role, currentPage]); // Refetch on navigation to keep history updated
 
-  // Navigation
+  // --- 2. NAVIGATION & LOGOUT LOGIC ---
   const navigateTo = (page) => {
     setCurrentPage(page);
     setMobileMenuOpen(false);
     window.scrollTo(0, 0);
   };
 
-  // --- 2. PAGE ROUTING LOGIC ---
+  const handleLogout = () => {
+    logout();
+    setCurrentPage('home'); // FIX: Force redirect to home to prevent "Access Restricted" view
+  };
+
+  // --- 3. PAGE ROUTING LOGIC ---
   const renderPage = () => {
     switch (currentPage) {
       case 'home':
@@ -74,6 +76,8 @@ const App = () => {
       case 'register':
         return <RegisterPage login={login} navigateTo={navigateTo} />;
       case 'booking':
+        // Protection: Vets should not be able to book
+        if (role === 'vet') return <HomePage user={user} role={role} navigateTo={navigateTo} adoptionDogs={adoptionDogs} />;
         return (
           <BookingPage 
             user={user} 
@@ -100,11 +104,13 @@ const App = () => {
             user={user} 
             role={role} 
             navigateTo={navigateTo} 
-            // Only show appointments belonging to this user
-            userAppointments={appointments.filter(apt => apt.email === user.email)} 
+            // Filters history for the specific logged-in user
+            userAppointments={appointments.filter(apt => apt.email === user?.email)} 
           />
         );
       case 'vet-dashboard':
+        // Protection: Only Vets can see this dashboard
+        if (role !== 'vet') return <HomePage user={user} role={role} navigateTo={navigateTo} adoptionDogs={adoptionDogs} />;
         return (
           <VetDashboardPage 
             user={user} 
@@ -135,7 +141,7 @@ const App = () => {
         role={role}
         currentPage={currentPage}
         navigateTo={navigateTo}
-        logout={logout}
+        logout={handleLogout} // Uses the corrected logout handler
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
       />
