@@ -1,120 +1,128 @@
-import React from 'react';
-import { Bell, Calendar, Clock, Phone, Mail, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  User, 
+  Phone, 
+  Calendar as CalendarIcon,
+  ClipboardList
+} from 'lucide-react';
 
-const VetDashboardPage = ({ 
-  user, 
-  role, 
-  navigateTo, 
-  appointments, 
-  setAppointments, 
-  userAppointments, 
-  setUserAppointments 
-}) => {
-  const handleAccept = (id) => {
-    const updated = appointments.map(apt =>
-      apt.id === id ? { ...apt, status: 'accepted', response: 'Your appointment has been confirmed.' } : apt
-    );
-    setAppointments(updated);
-    setUserAppointments(userAppointments.map(apt =>
-      apt.id === id ? { ...apt, status: 'accepted', response: 'Your appointment has been confirmed.' } : apt
-    ));
+const VetDashboardPage = ({ appointments, setAppointments, user, role }) => {
+  const [filter, setFilter] = useState('all');
+
+  // --- 1. HANDLE STATUS UPDATE (Atlas Integration) ---
+  const handleStatusUpdate = async (appointmentId, newStatus) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/appointments/${appointmentId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (response.ok) {
+        // Update the global state in App.jsx so all pages stay in sync
+        setAppointments(prev => 
+          prev.map(apt => apt._id === appointmentId ? { ...apt, status: newStatus } : apt)
+        );
+      } else {
+        const errorData = await response.json();
+        alert(`Update failed: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error("Error updating status in MongoDB Atlas:", error);
+      alert("Failed to connect to the server.");
+    }
   };
 
-  const handleReject = (id) => {
-    const reason = prompt('Please provide a reason for rejection (optional):');
-    const updated = appointments.map(apt =>
-      apt.id === id ? { ...apt, status: 'rejected', response: reason || 'Appointment was rejected.' } : apt
-    );
-    setAppointments(updated);
-    setUserAppointments(userAppointments.map(apt =>
-      apt.id === id ? { ...apt, status: 'rejected', response: reason || 'Appointment was rejected.' } : apt
-    ));
-  };
-
-  if (!user || role !== 'vet') {
-    return (
-      <div className="page">
-        <div className="restriction-message">
-          <AlertCircle size={64} />
-          <h2>Access Restricted</h2>
-          <p>This page is only accessible to veterinarians</p>
-          <button className="btn-primary" onClick={() => navigateTo('login')}>
-            Login as Veterinarian
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const pendingAppointments = appointments.filter(apt => apt.status === 'pending');
+  // Filter logic for the UI
+  const filteredAppointments = appointments.filter(apt => 
+    filter === 'all' ? true : apt.status === filter
+  );
 
   return (
     <div className="page">
       <div className="page-header">
-        <h1>
-          <Bell size={36} />
-          Appointment Requests
-        </h1>
-        <p>Manage incoming appointment requests</p>
+        <h1><ClipboardList size={36} /> Veterinarian Dashboard</h1>
+        <p>Manage your upcoming appointments and patient requests</p>
       </div>
 
-      <div className="vet-dashboard">
-        {pendingAppointments.length === 0 ? (
+      {/* Stats Overview */}
+      <div className="stats-grid">
+        <div className="stat-card">
+          <Clock className="stat-icon pending" />
+          <div className="stat-info">
+            <span className="stat-value">{appointments.filter(a => a.status === 'pending').length}</span>
+            <span className="stat-label">Pending</span>
+          </div>
+        </div>
+        <div className="stat-card">
+          <CheckCircle className="stat-icon accepted" />
+          <div className="stat-info">
+            <span className="stat-value">{appointments.filter(a => a.status === 'accepted').length}</span>
+            <span className="stat-label">Accepted</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="tabs-container">
+        <button className={`tab ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>All</button>
+        <button className={`tab ${filter === 'pending' ? 'active' : ''}`} onClick={() => setFilter('pending')}>Pending</button>
+        <button className={`tab ${filter === 'accepted' ? 'active' : ''}`} onClick={() => setFilter('accepted')}>Accepted</button>
+      </div>
+
+      {/* Appointments List */}
+      <div className="appointments-list">
+        {filteredAppointments.length === 0 ? (
           <div className="empty-state">
-            <Bell size={64} />
-            <h3>No Pending Appointments</h3>
-            <p>You're all caught up!</p>
+            <p>No appointments found for this category.</p>
           </div>
         ) : (
-          <div className="appointments-list">
-            {pendingAppointments.map((appointment) => (
-              <div key={appointment.id} className="appointment-card vet-card">
-                <div className="appointment-header">
-                  <div>
-                    <h3>{appointment.dogName}</h3>
-                    <p className="appointment-owner">Owner: {appointment.ownerName}</p>
-                  </div>
-                  <div className="status-badge pending">
-                    <Clock size={16} />
-                    Pending
-                  </div>
+          filteredAppointments.map((apt) => (
+            <div key={apt._id} className={`appointment-card ${apt.status}`}>
+              <div className="apt-header">
+                <h3>{apt.dogName}</h3>
+                <span className={`status-badge ${apt.status}`}>{apt.status.toUpperCase()}</span>
+              </div>
+              
+              <div className="apt-details">
+                <div className="detail-item">
+                  <User size={16} /> <span>Owner: {apt.ownerName}</span>
                 </div>
-                <div className="appointment-details">
-                  <div className="appointment-detail">
-                    <Calendar size={16} />
-                    {new Date(appointment.date).toLocaleDateString()}
-                  </div>
-                  <div className="appointment-detail">
-                    <Clock size={16} />
-                    {appointment.time}
-                  </div>
-                  <div className="appointment-detail">
-                    <Phone size={16} />
-                    {appointment.contact}
-                  </div>
-                  <div className="appointment-detail">
-                    <Mail size={16} />
-                    {appointment.email}
-                  </div>
+                <div className="detail-item">
+                  <Phone size={16} /> <span>Contact: {apt.contact}</span>
                 </div>
-                {appointment.notes && (
-                  <div className="appointment-notes">
-                    <strong>Patient Notes:</strong> {appointment.notes}
-                  </div>
-                )}
-                <div className="appointment-actions">
-                  <button className="btn-success" onClick={() => handleAccept(appointment.id)}>
-                    <CheckCircle size={18} />
-                    Accept
-                  </button>
-                  <button className="btn-danger" onClick={() => handleReject(appointment.id)}>
-                    <XCircle size={18} />
-                    Reject
-                  </button>
+                <div className="detail-item">
+                  <CalendarIcon size={16} /> <span>Date: {apt.date} at {apt.time}</span>
                 </div>
               </div>
-            ))}
-          </div>
+
+              {apt.notes && (
+                <div className="apt-notes">
+                  <strong>Notes:</strong> {apt.notes}
+                </div>
+              )}
+
+              {apt.status === 'pending' && (
+                <div className="apt-actions">
+                  <button 
+                    className="btn-accept" 
+                    onClick={() => handleStatusUpdate(apt._id, 'accepted')}
+                  >
+                    <CheckCircle size={18} /> Accept
+                  </button>
+                  <button 
+                    className="btn-reject" 
+                    onClick={() => handleStatusUpdate(apt._id, 'rejected')}
+                  >
+                    <XCircle size={18} /> Reject
+                  </button>
+                </div>
+              )}
+            </div>
+          ))
         )}
       </div>
     </div>

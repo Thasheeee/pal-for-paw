@@ -1,7 +1,7 @@
 // File: App.jsx
-// Main application component
+// Main application component with MongoDB Atlas Integration
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from './hooks/useAuth';
 import Header from './components/Header';
 import HomePage from './pages/HomePage';
@@ -20,40 +20,34 @@ const App = () => {
   const [currentPage, setCurrentPage] = useState('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // Initial adoption dogs data
-  const [adoptionDogs, setAdoptionDogs] = useState([
-    {
-      id: 1,
-      name: 'Buddy',
-      age: 3,
-      breed: 'Golden Retriever',
-      description: 'Friendly and energetic, loves to play fetch!',
-      location: 'Los Angeles, CA',
-      image: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=400&h=300&fit=crop'
-    },
-    {
-      id: 2,
-      name: 'Luna',
-      age: 2,
-      breed: 'Husky',
-      description: 'Beautiful blue eyes, very gentle and loving.',
-      location: 'Seattle, WA',
-      image: 'https://images.unsplash.com/photo-1568572933382-74d440642117?w=400&h=300&fit=crop'
-    },
-    {
-      id: 3,
-      name: 'Max',
-      age: 1,
-      breed: 'Beagle',
-      description: 'Playful puppy looking for an active family!',
-      location: 'Austin, TX',
-      image: 'https://images.unsplash.com/photo-1505628346881-b72b27e84530?w=400&h=300&fit=crop'
-    }
-  ]);
-  
-  // Appointments state
+  // State managed via MongoDB Atlas
+  const [adoptionDogs, setAdoptionDogs] = useState([]);
   const [appointments, setAppointments] = useState([]);
-  const [userAppointments, setUserAppointments] = useState([]);
+
+  // --- 1. DATA SYNC WITH MONGODB ATLAS ---
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch Adoption Dogs (Always available)
+        const dogRes = await fetch('http://localhost:5000/api/dogs');
+        const dogData = await dogRes.json();
+        setAdoptionDogs(dogData);
+
+        // Fetch Appointments (Only if logged in)
+        if (user) {
+          const aptRes = await fetch(
+            `http://localhost:5000/api/appointments?role=${role}&email=${user.email}`
+          );
+          const aptData = await aptRes.json();
+          setAppointments(aptData);
+        }
+      } catch (error) {
+        console.error("Error syncing with MongoDB Atlas:", error);
+      }
+    };
+
+    fetchData();
+  }, [user, role, currentPage]); // Refetch on login, role change, or navigation
 
   // Navigation
   const navigateTo = (page) => {
@@ -62,7 +56,7 @@ const App = () => {
     window.scrollTo(0, 0);
   };
 
-  // Render current page
+  // --- 2. PAGE ROUTING LOGIC ---
   const renderPage = () => {
     switch (currentPage) {
       case 'home':
@@ -87,8 +81,6 @@ const App = () => {
             navigateTo={navigateTo} 
             appointments={appointments}
             setAppointments={setAppointments}
-            userAppointments={userAppointments}
-            setUserAppointments={setUserAppointments}
           />
         );
       case 'predict':
@@ -99,7 +91,6 @@ const App = () => {
             user={user} 
             role={role} 
             navigateTo={navigateTo} 
-            adoptionDogs={adoptionDogs}
             setAdoptionDogs={setAdoptionDogs}
           />
         );
@@ -109,7 +100,8 @@ const App = () => {
             user={user} 
             role={role} 
             navigateTo={navigateTo} 
-            userAppointments={userAppointments}
+            // Only show appointments belonging to this user
+            userAppointments={appointments.filter(apt => apt.email === user.email)} 
           />
         );
       case 'vet-dashboard':
@@ -120,8 +112,6 @@ const App = () => {
             navigateTo={navigateTo} 
             appointments={appointments}
             setAppointments={setAppointments}
-            userAppointments={userAppointments}
-            setUserAppointments={setUserAppointments}
           />
         );
       case 'analytics':
@@ -134,14 +124,7 @@ const App = () => {
           />
         );
       default:
-        return (
-          <HomePage 
-            user={user} 
-            role={role} 
-            navigateTo={navigateTo} 
-            adoptionDogs={adoptionDogs} 
-          />
-        );
+        return <HomePage user={user} role={role} navigateTo={navigateTo} adoptionDogs={adoptionDogs} />;
     }
   };
 
@@ -156,7 +139,9 @@ const App = () => {
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
       />
-      {renderPage()}
+      <main className="main-content">
+        {renderPage()}
+      </main>
     </div>
   );
 };

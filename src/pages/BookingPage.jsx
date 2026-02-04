@@ -1,51 +1,35 @@
 import React, { useState } from 'react';
 import { Calendar, CheckCircle } from 'lucide-react';
 
-const BookingPage = ({ 
-  user, 
-  role, 
-  navigateTo, 
-  appointments, 
-  setAppointments, 
-  userAppointments, 
-  setUserAppointments 
-}) => {
+const BookingPage = ({ user, role, navigateTo }) => {
   const [formData, setFormData] = useState({
-    dogName: '',
-    ownerName: '',
-    contact: '',
-    email: '',
-    date: '',
-    time: '',
-    notes: ''
+    dogName: '', ownerName: '', contact: '', email: user?.email || '',
+    date: '', time: '', notes: ''
   });
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newAppointment = {
-      id: Date.now(),
       ...formData,
       status: 'pending',
       timestamp: new Date().toISOString()
     };
-    setAppointments([...appointments, newAppointment]);
-    if (user && role === 'user') {
-      setUserAppointments([...userAppointments, newAppointment]);
-    }
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({
-        dogName: '',
-        ownerName: '',
-        contact: '',
-        email: '',
-        date: '',
-        time: '',
-        notes: ''
+
+    try {
+      const response = await fetch('http://localhost:5000/api/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newAppointment),
       });
-    }, 3000);
+
+      if (response.ok) {
+        setSubmitted(true);
+        setTimeout(() => navigateTo('home'), 3000);
+      }
+    } catch (error) {
+      console.error("Failed to save appointment to Atlas:", error);
+    }
   };
 
   return (
@@ -161,3 +145,5 @@ const BookingPage = ({
 };
 
 export default BookingPage;
+
+
