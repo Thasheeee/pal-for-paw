@@ -34,32 +34,6 @@
   --info: #70655B;         /* Neutral dark taupe */
 }
 
-/* :root { */
-  /* Earth-Tone & Professional Brown Palette */
-  /* --deep-chocolate: #3D2B1F;  
-  --coffee-bean: #4B382A;   
-  --burnt-umber: #634832;   
-  --raw-sienna: #8E624E;    
-  --clay: #A68A78;           
-  --warm-stone: #C5B4A1;     
-  --taupe-grey: #8C7E6D;    
-  --dark-sand: #B0A089;      
-  
-  --primary: var(--coffee-bean);
-  --secondary: var(--burnt-umber);
-  --accent: var(--raw-sienna);
-  --background: #D2C9BD;      
-  --text: #261D15;            
-  --text-light: #5C5045;     
-  --border: #A69B8F;         
-  --shadow: rgba(61, 43, 31, 0.12); 
-  --shadow-lg: rgba(61, 43, 31, 0.2); 
-  
-  --success: #5F6D52;        
-  --warning: #9B714B;        
-  --error: #8E5A5A;          
-  --info: #70655B;             */
-/* } */
 
 body {
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -369,6 +343,60 @@ body {
 }
 
 /* Hero Section */
+
+/* Hero Button Styling */
+.hero-btn {
+  background-color: var(--deep-chocolate);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 16px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 20px var(--shadow);
+  width: fit-content;
+}
+
+.hero-btn:hover {
+  background-color: var(--coffee-bean);
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px var(--shadow-lg);
+}
+
+.hero-btn:active {
+  transform: translateY(-1px);
+}
+
+.hero-btn svg {
+  transition: transform 0.3s ease;
+}
+
+.hero-btn:hover svg:last-child {
+  transform: translateX(5px); /* Moves the ChevronRight icon slightly */
+}
+
+/* Secondary Outline Button (Login/Register) */
+.btn-outline.btn-large {
+  background: white;
+  border: 2px solid var(--deep-chocolate);
+  color: var(--deep-chocolate);
+  border-radius: 16px;
+  padding: 1rem 2rem;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.btn-outline.btn-large:hover {
+  background: #F5F2EF; /* Very light brown tint */
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px var(--shadow);
+}
 .hero {
   position: relative;
   padding: 4rem 0;
@@ -535,6 +563,122 @@ body {
 .badge-text {
   font-size: 0.9rem;
   color: var(--text-light);
+}
+
+/* Diagnostic Focus Section */
+.diagnostic-focus {
+  margin-bottom: 5rem;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 40px;
+  box-shadow: 0 15px 40px var(--shadow);
+}
+
+.diagnostic-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  margin-top: 3rem;
+}
+
+.diagnostic-card {
+  background: var(--background);
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  transition: transform 0.3s ease;
+}
+
+.diagnostic-card:hover {
+  transform: translateY(-10px);
+}
+
+.diagnostic-visual {
+  height: 200px;
+  position: relative;
+  overflow: hidden;
+  background: var(--deep-chocolate);
+}
+
+.diagnostic-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+}
+
+.diagnostic-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(61, 43, 31, 0.2);
+}
+
+.scan-line {
+  width: 100%;
+  height: 4px;
+  background: var(--accent);
+  position: absolute;
+  top: 0;
+  animation: scan 3s infinite linear;
+  box-shadow: 0 0 15px var(--accent);
+}
+
+@keyframes scan {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+
+.text-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: white;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.text-preview {
+  border-left: 3px solid var(--accent);
+  padding-left: 1rem;
+  position: relative;
+}
+
+.cursor {
+  display: inline-block;
+  width: 10px;
+  height: 20px;
+  background: var(--accent);
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+.diagnostic-info {
+  padding: 2rem;
+  text-align: center;
+}
+
+.diagnostic-info h3 {
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 1rem;
+  color: var(--deep-chocolate);
+}
+
+.diagnostic-info p {
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-light);
+}
+
+@media (max-width: 768px) {
+  .diagnostic-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Features */

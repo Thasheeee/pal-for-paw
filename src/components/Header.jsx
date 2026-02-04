@@ -33,7 +33,7 @@ const Header = ({
           </div>
           <div className="logo-text">
             <span className="logo-main">Pal for Paw</span>
-            <span className="logo-sub">AI-Powered Pet Care</span>
+            <span className="logo-sub">Smart Pet Care</span>
           </div>
         </div>
 

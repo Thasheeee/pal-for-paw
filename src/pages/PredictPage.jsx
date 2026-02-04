@@ -126,7 +126,7 @@ const PredictPage = ({ user, role, navigateTo }) => {
       }
     } catch (error) {
       console.error("Connection Error:", error);
-      alert("Failed to connect to the AI Server. Is 'python server.py' running?");
+      alert("Failed to connect to the Server. Is 'python server.py' running?");
     } finally {
       setLoading(false);
     }
@@ -152,7 +152,7 @@ const PredictPage = ({ user, role, navigateTo }) => {
       <div className="page-header">
         <h1>
           <Sparkles size={36} />
-          AI Disease Prediction
+          Dermatological Analysis
         </h1>
         <p>Upload an image or describe symptoms for analysis</p>
       </div>
@@ -263,7 +263,7 @@ const PredictPage = ({ user, role, navigateTo }) => {
               </div>
               <div className="result-disclaimer">
                 <AlertCircle size={16} />
-                <span>This is an AI prediction. Please consult a veterinarian for accurate diagnosis.</span>
+                <span>This is a computational prediction. Please consult a veterinarian for accurate diagnosis.</span>
               </div>
             </div>
           )}
