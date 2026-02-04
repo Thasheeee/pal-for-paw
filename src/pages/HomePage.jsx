@@ -63,7 +63,6 @@ const HomePage = ({ user, role, navigateTo, adoptionDogs }) => {
               />
               <div className="hero-image-badge">
                 <PawPrint size={20} />
-               
               </div>
             </div>
           </div>
@@ -89,8 +88,9 @@ const HomePage = ({ user, role, navigateTo, adoptionDogs }) => {
             <div className="diagnostic-visual">
               <img
                 src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=300&fit=crop"
-                alt="Image Analysis"
+                alt="Dog skin being analyzed"
               />
+
               <div className="diagnostic-overlay">
                 <div className="scan-line"></div>
               </div>
