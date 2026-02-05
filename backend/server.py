@@ -12,12 +12,10 @@ from PIL import Image, ImageOps
 from transformers import CLIPProcessor, CLIPModel
 from bson import ObjectId
 
-# 1. SETUP FLASK & MONGODB ATLAS
+# SETUP FLASK & MONGODB ATLAS
 app = Flask(__name__)
 CORS(app) 
 
-# Replace <password> with your copied Atlas password: 93vKGCTfjsUWCTZu
-# Insert 'palForPaw' before the '?'
 app.config["MONGO_URI"] = "mongodb+srv://thashee2003_db_user:93vKGCTFjsUWCTZu@palforpawcluster0.ao04vhy.mongodb.net/palForPaw?retryWrites=true&w=majority&appName=PalForPawCluster0"
 mongo = PyMongo(app) #
 
@@ -27,21 +25,20 @@ with app.app_context():
         mongo.db.command('ping')
         print("✅ Successfully connected to MongoDB Atlas (palForPaw database)!")
     except Exception as e:
-        print(f"❌ MongoDB Connection Failed: {e}")
+        print(f" MongoDB Connection Failed: {e}")
 
 
-
-# 2. LOAD VISION MODEL
+#  LOAD VISION MODEL
 print("⏳ Loading Vision Model...")
 try:
     loaded_model = tf.saved_model.load('final_dog_skin_model_tf')
     vision_model = loaded_model.signatures["serving_default"]
     print("✅ Vision Model Loaded!")
 except Exception as e:
-    print(f"❌ Error loading vision model: {e}")
+    print(f" Error loading vision model: {e}")
     vision_model = None
 
-# 3. LOAD TEXT EXPERT (CLIP)
+# LOAD TEXT EXPERT (CLIP)
 print("⏳ Loading Text Expert (CLIP)...")
 device = "cpu"
 try:
@@ -52,10 +49,10 @@ try:
         vector_db = pickle.load(f)
     print("✅ Text Database Loaded!")
 except Exception as e:
-    print(f"❌ Error loading text resources: {e}")
+    print(f" Error loading text resources: {e}")
     vector_db = []
 
-# 4. CONSTANTS & MAPPINGS
+#  CONSTANTS & MAPPINGS
 CLASSES = ['Dermatitis', 'Fungal_infections', 'Healthy', 'Hypersensitivity', 'demodicosis', 'ringworm']
 KEYWORDS = {
     "ringworm": ["circle", "circular", "ring", "round", "bald spot", "coin", "oval", "lesion"],
@@ -66,7 +63,7 @@ KEYWORDS = {
     "Healthy": ["clean", "shiny", "healthy", "normal", "clear", "soft", "pretty", "no issue"]
 }
 
-# --- 5. AUTHENTICATION ENDPOINTS ---
+#  AUTHENTICATION ENDPOINTS 
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -93,7 +90,7 @@ def login():
         return jsonify({"email": user['email'], "role": user['role']}), 200
     return jsonify({"error": "Invalid email, password, or role choice"}), 401 #
 
-# --- 6. DATA MANAGEMENT ENDPOINTS ---
+#  DATA MANAGEMENT ENDPOINTS
 
 @app.route('/api/appointments', methods=['POST', 'GET'])
 def manage_appointments():
@@ -115,7 +112,7 @@ def manage_appointments():
     return jsonify(apts), 200
 
 
-# --- VET DASHBOARD: UPDATE APPOINTMENT STATUS ---
+# VET DASHBOARD: UPDATE APPOINTMENT STATUS 
 @app.route('/api/appointments/<id>', methods=['PATCH'])
 def update_appointment_status(id):
     try:
@@ -145,7 +142,7 @@ def manage_dogs():
     for d in dogs: d['_id'] = str(d['_id'])
     return jsonify(dogs), 200
 
-# --- DELETE DOG LISTING ---
+#  DELETE DOG LISTING 
 @app.route('/api/dogs/<id>', methods=['DELETE'])
 def delete_dog(id):
     try:
@@ -157,7 +154,7 @@ def delete_dog(id):
         return jsonify({"error": str(e)}), 500
     
 
-# --- 7. ML PREDICTION ENDPOINTS ---
+#  ML PREDICTION ENDPOINTS 
 
 @app.route('/predict_image', methods=['POST'])
 def predict_image():
