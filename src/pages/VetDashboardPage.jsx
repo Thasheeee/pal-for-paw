@@ -22,7 +22,7 @@ const VetDashboardPage = ({
   // Toggle between 'requests' and 'history' views
   const [activeTab, setActiveTab] = useState('requests');
 
-  // --- 1. HANDLE STATUS UPDATE (MongoDB Atlas Integration) ---
+  // HANDLE STATUS UPDATE (MongoDB Atlas Integration) 
   const handleStatusUpdate = async (appointmentId, newStatus, responseText) => {
     try {
       const response = await fetch(`http://localhost:5000/api/appointments/${appointmentId}`, {
@@ -65,13 +65,13 @@ const VetDashboardPage = ({
     }
   };
 
-  // --- 2. DATA FILTERING ---
+  // DATA FILTERING 
   // Ensure appointments is always an array to prevent .map() crashes
   const allAppointments = Array.isArray(appointments) ? appointments : [];
   const pendingRequests = allAppointments.filter(apt => apt.status === 'pending');
   const historyLog = allAppointments.filter(apt => apt.status !== 'pending');
 
-  // --- 3. ACCESS PROTECTION ---
+  // ACCESS PROTECTION 
   if (!user || role !== 'vet') {
     return (
       <div className="page">

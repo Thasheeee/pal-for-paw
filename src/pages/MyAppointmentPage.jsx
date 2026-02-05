@@ -13,7 +13,7 @@ import {
 const MyAppointmentPage = ({ user, role, userAppointments, navigateTo }) => {
   const [filter, setFilter] = useState('all');
 
-  // --- 1. ACCESS PROTECTION ---
+  // ACCESS PROTECTION 
   if (!user) {
     return (
       <div className="page">
@@ -29,7 +29,7 @@ const MyAppointmentPage = ({ user, role, userAppointments, navigateTo }) => {
     );
   }
 
-  // --- 2. DATA SORTING & FILTERING ---
+  //  DATA SORTING & FILTERING 
   // Ensure we are working with an array
   const appointments = Array.isArray(userAppointments) ? userAppointments : [];
   

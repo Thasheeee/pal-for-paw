@@ -40,7 +40,7 @@ const AddDogPage = ({ user, role, navigateTo, setAdoptionDogs }) => {
         body: JSON.stringify({
           ...formData,
           age: parseInt(formData.age),
-          ownerEmail: user.email // Linking dog to the current user
+          ownerEmail: user.email 
         }),
       });
 
