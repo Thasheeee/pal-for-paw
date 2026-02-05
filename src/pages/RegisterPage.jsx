@@ -15,7 +15,7 @@ const RegisterPage = ({ login, navigateTo }) => {
     setError('');
 
     try {
-      // 1. Send data to your Flask Backend
+      //  Send data to  Flask Backend
       const response = await fetch('http://localhost:5000/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -30,11 +30,11 @@ const RegisterPage = ({ login, navigateTo }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // 2. If successful, log in and navigate
+        // If successful, log in and navigate
         login(formData.email, selectedRole);
         navigateTo('home');
       } else {
-        // 3. Display backend errors (e.g., email already registered)
+        // Display backend errors 
         setError(data.error);
       }
     } catch (err) {

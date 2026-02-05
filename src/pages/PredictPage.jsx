@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Upload, Camera, AlertCircle, X, Image as ImageIcon } from 'lucide-react';
 
-// --- 1. STATIC DATA FOR UI RICHNESS ---
+// STATIC DATA FOR UI RICHNESS 
 // The AI returns just the disease name. We use this to look up the "Severity" and "Recommendation" 
 // so your UI remains beautiful and informative.
 const diseaseDetails = {
@@ -45,10 +45,10 @@ const PredictPage = ({ user, role, navigateTo }) => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // 1. Save File for API
+      // Save File for API
       setSelectedFile(file);
       
-      // 2. Create Preview for UI
+      // Create Preview for UI
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
@@ -64,12 +64,12 @@ const PredictPage = ({ user, role, navigateTo }) => {
     setLoading(true);
     setPrediction(null);
 
-    const BACKEND_URL = "http://localhost:5000"; // Your Flask URL
+    const BACKEND_URL = "http://localhost:5000"; //  Flask URL
     let endpoint = "";
     let body = null;
     let headers = {};
 
-    // --- STEP 1: PREPARE DATA BASED ON TAB ---
+    // PREPARE DATA BASED ON TAB 
     if (activeTab === 'upload') {
       if (!selectedFile) {
         alert("Please select an image first.");
@@ -92,7 +92,7 @@ const PredictPage = ({ user, role, navigateTo }) => {
       headers = { 'Content-Type': 'application/json' };
     }
 
-    // --- STEP 2: CALL FLASK API ---
+    // CALL FLASK API 
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -103,7 +103,7 @@ const PredictPage = ({ user, role, navigateTo }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // --- STEP 3: FORMAT RESULT FOR UI ---
+        // -FORMAT RESULT FOR UI 
         // Get the static details (Severity/Recommendation) based on the AI's result
         const details = diseaseDetails[data.disease] || { 
           severity: 'Unknown', 
