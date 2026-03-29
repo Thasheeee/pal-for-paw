@@ -16,7 +16,7 @@ const RegisterPage = ({ login, navigateTo }) => {
 
     try {
       //  Send data to  Flask Backend
-      const response = await fetch('http://localhost:5000/register', {
+      const response = await fetch('http://localhost:10000/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -25,7 +25,7 @@ const VetDashboardPage = ({
   // HANDLE STATUS UPDATE (MongoDB Atlas Integration) 
   const handleStatusUpdate = async (appointmentId, newStatus, responseText) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/appointments/${appointmentId}`, {
+      const response = await fetch(`http://localhost:10000/api/appointments/${appointmentId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

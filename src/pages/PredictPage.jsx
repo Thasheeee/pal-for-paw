@@ -64,7 +64,7 @@ const PredictPage = ({ user, role, navigateTo }) => {
     setLoading(true);
     setPrediction(null);
 
-    const BACKEND_URL = "http://localhost:5000"; //  Flask URL
+    const BACKEND_URL = "http://localhost:10000"; //  Flask URL
     let endpoint = "";
     let body = null;
     let headers = {};

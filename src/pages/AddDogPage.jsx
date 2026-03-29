@@ -34,7 +34,7 @@ const AddDogPage = ({ user, role, navigateTo, setAdoptionDogs }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/dogs', {
+      const response = await fetch('http://localhost:10000/api/dogs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -26,14 +26,14 @@ const App = () => {
     const fetchData = async () => {
       try {
         // Fetch Adoption Dogs (Always available)
-        const dogRes = await fetch('http://localhost:5000/api/dogs');
+        const dogRes = await fetch('http://localhost:10000/api/dogs');
         const dogData = await dogRes.json();
         setAdoptionDogs(Array.isArray(dogData) ? dogData : []);
 
         // Fetch Appointments (Only if logged in)
         if (user) {
           const aptRes = await fetch(
-            `http://localhost:5000/api/appointments?role=${role}&email=${user.email}`
+            `http://localhost:10000/api/appointments?role=${role}&email=${user.email}`
           );
           const aptData = await aptRes.json();
           setAppointments(Array.isArray(aptData) ? aptData : []);

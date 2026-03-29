@@ -7,6 +7,7 @@ import torch
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_pymongo import PyMongo
+from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from PIL import Image, ImageOps
 from transformers import CLIPProcessor, CLIPModel
@@ -22,8 +23,8 @@ mongo = PyMongo(app) #
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.environ.get('palforpaw@gmail.com') 
-app.config['MAIL_PASSWORD'] = os.environ.get('gsmrtvhfqhiordgm')  
+app.config['MAIL_USERNAME'] = os.environ.get('EMAIL_USER')
+app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PASS')
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('EMAIL_USER')
  
 mail = Mail(app)
@@ -124,20 +125,39 @@ def manage_appointments():
 # VET DASHBOARD: UPDATE APPOINTMENT STATUS 
 @app.route('/api/appointments/<id>', methods=['PATCH'])
 def update_appointment_status(id):
+    print(f"DEBUG: PATCH triggered for ID {id}")
     try:
         data = request.get_json()
-        new_status = data.get('status') # e.g., 'accepted' or 'rejected'
+        new_status = data.get('status')
         
-        # Update the specific appointment in MongoDB Atlas
+        appointment = mongo.db.appointments.find_one({'_id': ObjectId(id)})
+        if not appointment:
+            print("DEBUG: Appointment not found")
+            return jsonify({"error": "Appointment not found"}), 404
+
+        user_email = appointment.get('email')
+        dog_name = appointment.get('dogName')
+
         result = mongo.db.appointments.update_one(
             {'_id': ObjectId(id)},
             {'$set': {'status': new_status}}
         )
         
         if result.modified_count > 0:
-            return jsonify({"message": f"Appointment {new_status}"}), 200
-        return jsonify({"error": "Appointment not found"}), 404
+            try:
+                msg = Message(
+                    subject=f"Appointment Update for {dog_name}",
+                    recipients=[user_email],
+                    body=f"Hello,\n\nYour appointment for {dog_name} has been {new_status}.\n\nCheck the app for details."
+                )
+                mail.send(msg)
+                print(f"🚀 SUCCESS: Email sent to {user_email}")
+            except Exception as mail_error:
+                print(f"🔥 MAILER ERROR: {mail_error}")
+            
+            return jsonify({"message": "Status updated and email processed"}), 200
     except Exception as e:
+        print(f"❌ SERVER ERROR: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/dogs', methods=['POST', 'GET'])
@@ -161,6 +181,8 @@ def delete_dog(id):
         return jsonify({"error": "Dog not found"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
     
 
 #  ML PREDICTION ENDPOINTS 
@@ -240,7 +262,7 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
 
 # if __name__ == '__main__':
-#     print("🚀 Pal for Paw Server starting on http://localhost:5000")
-#     app.run(port=5000, debug=True)
+#     print("🚀 Pal for Paw Server starting on http://localhost:10000")
+#     app.run(port=10000, debug=True)
 
   
