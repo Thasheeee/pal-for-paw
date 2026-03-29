@@ -1,4 +1,3 @@
-# Getting Started with Create 
 ---
 title: Pal For Paw
 emoji: 🐾
@@ -11,6 +10,9 @@ pinned: false
 
 # Pal-for-Paw Backend
 Multi modal diagnostic system for dog skin conditions.
+
+
+# Getting Started with Create 
 
 
 React App
