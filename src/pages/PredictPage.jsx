@@ -240,9 +240,7 @@ const PredictPage = ({ user, role, navigateTo }) => {
             <div className="prediction-result">
               <div className="result-header">
                 <h3>Prediction Result</h3>
-                <div className={`severity-badge ${prediction.severity.toLowerCase()}`}>
-                  {prediction.severity}
-                </div>
+                
               </div>
               <div className="result-content">
                 <div className="result-item">

@@ -199,15 +199,18 @@ def predict_text():
 
     try:
         inputs = clip_processor(text=[user_text], return_tensors="pt", padding=True).to(device)
+
         with torch.no_grad():
-            text_features = clip_model.get_text_features(**inputs)
-        
-        text_features /= text_features.norm(p=2, dim=-1, keepdim=True)
-        text_vector = text_features.numpy()
-        
+            outputs = clip_model.text_model(**inputs)
+            text_features = outputs.pooler_output  # actual tensor embedding
+
+# Normalize embedding
+        text_features = text_features / text_features.norm(p=2, dim=-1, keepdim=True)
+        text_vector = text_features.cpu().numpy().reshape(-1)
         ai_scores = {d: 0.0 for d in CLASSES}
         for entry in vector_db:
-            sim = np.dot(text_vector, entry['vector'].T).item()
+            db_vector = np.array(entry['vector']).reshape(-1)
+            sim = float(np.dot(text_vector, db_vector))
             ai_scores[entry['label']] = max(ai_scores[entry['label']], sim)
             
         # Keyword Boosting
@@ -217,12 +220,18 @@ def predict_text():
                 ai_scores[disease] += 0.5
 
         winner = max(ai_scores, key=ai_scores.get)
-        confidence = min(ai_scores[winner] * 100, 99.9)
+        confidence = min(float(ai_scores[winner]) * 100, 99.9)
         
         return jsonify({'disease': winner, 'confidence': f"{confidence:.1f}%"})
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+       print(f"Detailed Error: {e}")
+       return jsonify({'error': str(e)}), 500
+    
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
 
-if __name__ == '__main__':
-    print("🚀 Pal for Paw Server starting on http://localhost:5000")
-    app.run(port=5000, debug=True)
+# if __name__ == '__main__':
+#     print("🚀 Pal for Paw Server starting on http://localhost:5000")
+#     app.run(port=5000, debug=True)
+
+  
