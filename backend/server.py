@@ -16,7 +16,7 @@ from bson import ObjectId
 app = Flask(__name__)
 CORS(app) 
 
-app.config["MONGO_URI"] = "mongodb+srv://thashee2003_db_user:93vKGCTFjsUWCTZu@palforpawcluster0.ao04vhy.mongodb.net/palForPaw?retryWrites=true&w=majority&appName=PalForPawCluster0"
+app.config["MONGO_URI"] = os.environ.get("MONGO_URI")
 mongo = PyMongo(app) #
 
 # Initialization Check
