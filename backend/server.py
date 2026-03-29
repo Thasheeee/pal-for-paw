@@ -33,27 +33,27 @@ mail = Mail(app)
 # GET CURRENT DIRECTORY (where server.py is located)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-print(f"📁 Server running from: {BASE_DIR}")
-print(f"📁 Files in backend directory: {os.listdir(BASE_DIR)}")
+print(f"Server running from: {BASE_DIR}")
+print(f"Files in backend directory: {os.listdir(BASE_DIR)}")
 
 # Initialization Check
 with app.app_context():
     try:
         mongo.db.command('ping')
-        print("✅ Successfully connected to MongoDB Atlas (palForPaw database)!")
+        print("Successfully connected to MongoDB Atlas (palForPaw database)!")
     except Exception as e:
-        print(f"❌ MongoDB Connection Failed: {e}")
+        print(f"MongoDB Connection Failed: {e}")
 
 # ========================================
 # LOAD VISION MODEL (FIXED VERSION)
 # ========================================
-print("\n⏳ Loading Vision Model...")
+print("\nLoading Vision Model...")
 
 # Model path (in same directory as server.py)
 model_path = os.path.join(BASE_DIR, 'final_dog_skin_model_tf')
 
-print(f"🔍 Looking for model at: {model_path}")
-print(f"📂 Model exists: {os.path.exists(model_path)}")
+print(f"Looking for model at: {model_path}")
+print(f"Model exists: {os.path.exists(model_path)}")
 
 vision_model = None
 
@@ -69,22 +69,22 @@ if os.path.exists(model_path):
         print(f"✅ Model signature: {list(vision_model.structured_outputs.keys())}")
         
     except Exception as e:
-        print(f"❌ Error loading vision model: {e}")
+        print(f"Error loading vision model: {e}")
         import traceback
         traceback.print_exc()
         vision_model = None
 else:
-    print(f"❌ Model folder not found at: {model_path}")
+    print(f"Model folder not found at: {model_path}")
     print(f"Available files in {BASE_DIR}: {os.listdir(BASE_DIR)}")
 
 # ========================================
 # LOAD TEXT EXPERT (CLIP)
 # ========================================
-print("\n⏳ Loading Text Expert (CLIP)...")
+print("\nLoading Text Expert (CLIP)...")
 device = "cpu"
 
 clip_db_path = os.path.join(BASE_DIR, 'dog_skin_clip_db_large.pkl')
-print(f"🔍 Looking for CLIP database at: {clip_db_path}")
+print(f"Looking for CLIP database at: {clip_db_path}")
 
 try:
     clip_model = CLIPModel.from_pretrained("openai/clip-vit-large-patch14").to(device)
@@ -92,9 +92,9 @@ try:
     
     with open(clip_db_path, 'rb') as f:
         vector_db = pickle.load(f)
-    print(f"✅ Text Database Loaded! ({len(vector_db)} entries)")
+    print(f"Text Database Loaded! ({len(vector_db)} entries)")
 except Exception as e:
-    print(f"❌ Error loading text resources: {e}")
+    print(f"Error loading text resources: {e}")
     vector_db = []
 
 # CONSTANTS & MAPPINGS
@@ -121,7 +121,7 @@ def send_appointment_email(appointment, status, response=""):
         apt_time = appointment.get('time', 'N/A')
         
         if not user_email:
-            print("⚠️ No email address found for appointment")
+            print("No email address found for appointment")
             return False
         
         # Email subject based on status
@@ -230,11 +230,11 @@ def send_appointment_email(appointment, status, response=""):
         )
         
         mail.send(msg)
-        print(f"✅ Email sent to {user_email} - Status: {status}")
+        print(f"Email sent to {user_email} - Status: {status}")
         return True
         
     except Exception as e:
-        print(f"❌ Email sending failed: {e}")
+        print(f"Email sending failed: {e}")
         return False
 
 # ========================================
@@ -291,7 +291,7 @@ def manage_appointments():
 # VET DASHBOARD: UPDATE APPOINTMENT STATUS + SEND EMAIL
 @app.route('/api/appointments/<id>', methods=['PATCH'])
 def update_appointment_status(id):
-    print(f"📧 PATCH request received for appointment ID: {id}")
+    print(f"PATCH request received for appointment ID: {id}")
     try:
         data = request.get_json()
         new_status = data.get('status')
@@ -301,7 +301,7 @@ def update_appointment_status(id):
         appointment = mongo.db.appointments.find_one({'_id': ObjectId(id)})
         
         if not appointment:
-            print("❌ Appointment not found")
+            print(" Appointment not found")
             return jsonify({"error": "Appointment not found"}), 404
         
         # Update the appointment
@@ -329,7 +329,7 @@ def update_appointment_status(id):
         return jsonify({"error": "No changes made"}), 400
         
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/dogs', methods=['POST', 'GET'])
@@ -358,7 +358,7 @@ def delete_dog(id):
 # ========================================
 @app.route('/predict_image', methods=['POST'])
 def predict_image():
-    print("\n🖼️ Image prediction request received")
+    print("\nImage prediction request received")
     
     if not vision_model:
         return jsonify({'error': 'Vision model not loaded.'}), 500
@@ -395,11 +395,11 @@ def predict_image():
             'confidence': f"{float(np.max(score) * 100):.1f}%"
         }
         
-        print(f"✅ Prediction: {result['disease']} ({result['confidence']})")
+        print(f"Prediction: {result['disease']} ({result['confidence']})")
         return jsonify(result)
         
     except Exception as e:
-        print(f"❌ Prediction error: {e}")
+        print(f" Prediction error: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/predict_text', methods=['POST'])
@@ -416,7 +416,7 @@ def predict_text():
         return jsonify({'error': 'No text provided'}), 400
 
     try:
-        print(f"💬 Processing text: {user_text[:50]}...")
+        print(f"Processing text: {user_text[:50]}...")
         
         inputs = clip_processor(text=[user_text], return_tensors="pt", padding=True).to(device)
 
@@ -444,12 +444,12 @@ def predict_text():
         confidence = min(float(ai_scores[winner]) * 100, 99.9)
         
         result = {'disease': winner, 'confidence': f"{confidence:.1f}%"}
-        print(f"✅ Prediction: {result['disease']} ({result['confidence']})")
+        print(f"Prediction: {result['disease']} ({result['confidence']})")
         
         return jsonify(result)
         
     except Exception as e:
-        print(f"❌ Detailed Error: {e}")
+        print(f"Detailed Error: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
@@ -459,7 +459,7 @@ def predict_text():
 # ========================================
 if __name__ == "__main__":
     print("\n" + "="*50)
-    print("🚀 Pal for Paw Server Starting")
+    print("Pal for Paw Server Starting")
     print("="*50)
     print(f"Vision Model Status: {'✅ Loaded' if vision_model else '❌ Not Loaded'}")
     print(f"Text Model Status: {'✅ Loaded' if vector_db else '❌ Not Loaded'}")

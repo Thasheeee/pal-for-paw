@@ -17,7 +17,7 @@ const Footer = () => {
           <div className="footer-links">
             <a href="mailto:info@palforpaw.com">
               <Mail size={16} />
-              info@palforpaw.com
+              palforpaw@gmail.com
             </a>
             <a href="tel:+1234567890">
               <Phone size={16} />

@@ -8,7 +8,7 @@ const AddDogPage = ({ user, role, navigateTo, setAdoptionDogs }) => {
     breed: '',
     description: '',
     location: '',
-    image: '' // This will store the Base64 string
+    image: '' // store the Base64 string
   });
   const [submitted, setSubmitted] = useState(false);
   const [isUploading, setIsUploading] = useState(false);

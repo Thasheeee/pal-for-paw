@@ -30,7 +30,6 @@ const MyAppointmentPage = ({ user, role, userAppointments, navigateTo }) => {
   }
 
   //  DATA SORTING & FILTERING 
-  // Ensure we are working with an array
   const appointments = Array.isArray(userAppointments) ? userAppointments : [];
   
   // Sort by date (newest first)

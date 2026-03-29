@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Upload, Camera, AlertCircle, X, Image as ImageIcon } from 'lucide-react';
 
-// STATIC DATA FOR UI RICHNESS 
-// The AI returns just the disease name. We use this to look up the "Severity" and "Recommendation" 
-// so your UI remains beautiful and informative.
+// STATIC DATA 
 const diseaseDetails = {
   'ringworm': {
     severity: 'Moderate',
@@ -35,7 +33,7 @@ const PredictPage = ({ user, role, navigateTo }) => {
   const [activeTab, setActiveTab] = useState('upload');
   const [imagePreview, setImagePreview] = useState(null);
   
-  // NEW: Store the raw file for the API
+  //  Store the raw file for the API
   const [selectedFile, setSelectedFile] = useState(null); 
   
   const [symptoms, setSymptoms] = useState('');
@@ -80,7 +78,6 @@ const PredictPage = ({ user, role, navigateTo }) => {
       const formData = new FormData();
       formData.append('image', selectedFile);
       body = formData;
-      // Note: Do NOT set Content-Type header for FormData, browser does it automatically
     } else {
       if (!symptoms.trim()) {
         alert("Please describe the symptoms.");
@@ -185,7 +182,7 @@ const PredictPage = ({ user, role, navigateTo }) => {
 
                     <button className="remove-image" onClick={() => {
                         setImagePreview(null);
-                        setSelectedFile(null); // Clear file too
+                        setSelectedFile(null); 
                         setPrediction(null);
                     }}>
                       <X size={20} />
