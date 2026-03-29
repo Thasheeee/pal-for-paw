@@ -1,4 +1,19 @@
-# Getting Started with Create React App
+# Getting Started with Create 
+---
+title: Pal For Paw
+emoji: 🐾
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
+# Pal-for-Paw Backend
+Multi modal diagnostic system for dog skin conditions.
+
+
+React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
