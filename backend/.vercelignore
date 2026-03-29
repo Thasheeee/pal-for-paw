@@ -1,0 +1,7 @@
+server.py
+requirements.txt
+Dockerfile
+final_dog_skin_model_tf/
+dog_skin_clip_db_large.pkl
+venv/
+.env
