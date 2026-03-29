@@ -17,7 +17,8 @@ from bson import ObjectId
 app = Flask(__name__)
 CORS(app) 
 
-app.config["MONGO_URI"] = os.environ.get("MONGO_URI")
+# Replace the string below with your actual MongoDB Atlas connection string
+app.config["MONGO_URI"] = "mongodb+srv://thashee2003_db_user:UxegYC5CVHqtsmGt@palforpawcluster0.ao04vhy.mongodb.net/palForPaw?retryWrites=true&w=majority&appName=PalForPawCluster0"
 mongo = PyMongo(app)
 
 # EMAIL CONFIGURATION
